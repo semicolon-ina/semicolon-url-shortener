@@ -1,0 +1,39 @@
+version: "3.8"
+
+services:
+  url-shortener:
+    build:
+      context: ../ # Context: Root Project
+      dockerfile: url-shortener/Dockerfile
+    container_name: goshort-service
+    ports:
+      - "8080:8080"
+    environment:
+     # Mapping ke DefaultConfig (Embedded)
+      - APP_NAME=GoShort-Service
+      - APP_PORT=8080
+      
+      # Mapping ke RedisConfig (Nested)
+      # JANGAN PAKE REDIS_ADDR LAGI
+      - REDIS_ENABLED=true
+      - REDIS_HOST=redis      # Sesuai nama service redis di compose
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=
+    volumes:
+      # FIX DISINI:
+      # Kita mount folder ROOT (../) ke folder /app di container.
+      # Jadi struktur di container bakal persis sama kayak di laptop lo:
+      # /app/repo
+      # /app/url-shortener
+      - ../:/app
+    depends_on:
+      - redis
+    restart: unless-stopped
+
+  redis:
+    image: redis:alpine
+    container_name: goshort-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - ./redis_data:/data
